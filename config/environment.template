@@ -1,0 +1,29 @@
+# Read-Only Odoo MCP Server Configuration Template
+# Copy this file to .env and fill in your specific values
+
+# Odoo Connection Configuration - Staging Environment
+ODOO_URL=https://rhholding-merge-add-sscc-23727788.dev.odoo.com
+ODOO_DB=rhholding-merge-add-sscc-23727788
+ODOO_USERNAME=mcp@ananda.gmbh
+ODOO_PASSWORD=mcp88
+
+# Alternative environments (comment/uncomment as needed):
+# Production:
+# ODOO_URL=https://rhholding.odoo.com
+# ODOO_DB=rhholding-production-10209498
+
+# Development:
+# ODOO_URL=https://rhholding-hantech-shop-hd-22874060.dev.odoo.com
+# ODOO_DB=rhholding-hantech-shop-hd-22874060
+
+# Odoo Client Configuration
+ODOO_TIMEOUT=30
+ODOO_VERIFY_SSL=1
+
+# Monitoring & Logging (optional)
+# SENTRY_DSN=your_sentry_dsn_here
+LOG_LEVEL=INFO
+
+# DigitalOcean App Platform will set these automatically:
+# PORT=8080
+# HOST=0.0.0.0

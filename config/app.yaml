@@ -1,0 +1,105 @@
+# DigitalOcean App Platform Configuration
+# for RH Holding Read-Only Odoo MCP Server
+
+name: rh-holding-odoo-mcp-readonly
+region: fra
+
+services:
+- name: odoo-mcp-server
+  source_dir: /
+  github:
+    repo: your-username/odoo-read-only-mcp
+    branch: main
+    deploy_on_push: true
+
+  run_command: python -m uvicorn src.odoo_mcp.server:mcp --host 0.0.0.0 --port 8080
+
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+
+  health_check:
+    http_path: /health
+    initial_delay_seconds: 30
+    period_seconds: 10
+    timeout_seconds: 5
+    failure_threshold: 3
+    success_threshold: 2
+
+  http_port: 8080
+
+  envs:
+  # Odoo Connection
+  - key: ODOO_URL
+    value: https://rhholding.odoo.com
+    type: SECRET
+  - key: ODOO_DB
+    value: rhholding-production-10209498
+    type: SECRET
+  - key: ODOO_USERNAME
+    value: mcp@ananda.gmbh
+    type: SECRET
+  - key: ODOO_PASSWORD
+    scope: RUN_TIME
+    type: SECRET
+
+  # Odoo Client Configuration
+  - key: ODOO_TIMEOUT
+    value: "30"
+  - key: ODOO_VERIFY_SSL
+    value: "1"
+
+  # MCP Security
+  - key: MCP_API_KEY_N8N_PROD
+    scope: RUN_TIME
+    type: SECRET
+  - key: MCP_API_KEY_N8N_DEV
+    scope: RUN_TIME
+    type: SECRET
+  - key: MCP_API_KEY_ADMIN
+    scope: RUN_TIME
+    type: SECRET
+
+  # Rate Limiting
+  - key: MCP_RATE_LIMIT
+    value: "100"
+
+  # Company Access Control
+  - key: ALLOWED_COMPANIES
+    value: "1,2,3,4"
+
+  # Monitoring
+  - key: SENTRY_DSN
+    scope: RUN_TIME
+    type: SECRET
+  - key: LOG_LEVEL
+    value: INFO
+
+# Optional: Database for caching/session storage
+# databases:
+# - name: mcp-cache
+#   engine: PG
+#   version: "14"
+#   size: db-s-dev-database
+
+# Optional: Redis for rate limiting
+# - name: mcp-redis
+#   engine: REDIS
+#   version: "7"
+#   size: db-s-dev-database
+
+# Domain configuration (will be auto-generated if not specified)
+domains:
+- domain: odoo-mcp.rhholding.com
+  type: PRIMARY
+
+# Optional: Static site for documentation
+# static_sites:
+# - name: mcp-docs
+#   source_dir: /docs
+#   github:
+#     repo: your-username/odoo-read-only-mcp
+#     branch: main
+#   build_command: echo "No build needed"
+#   output_dir: /docs
+#   index_document: README.md

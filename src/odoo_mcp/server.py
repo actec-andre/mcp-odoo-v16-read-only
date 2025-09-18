@@ -1,7 +1,8 @@
 """
-MCP server for Odoo integration
+Read-Only MCP server for Odoo integration
 
-Provides MCP tools and resources for interacting with Odoo ERP systems
+Provides read-only MCP tools and resources for interacting with Odoo ERP systems.
+This server blocks all write operations (create, write, unlink) for safety.
 """
 
 import json
@@ -14,6 +15,38 @@ from mcp.server.fastmcp import Context, FastMCP
 from pydantic import BaseModel, Field
 
 from .odoo_client import OdooClient, get_odoo_client
+
+# Simple Read-Only Security Configuration
+ALLOWED_READ_METHODS = {
+    'search', 'search_count', 'search_read',
+    'read', 'browse', 'exists', 'name_search', 'name_get',
+    'fields_get', 'default_get', 'check_access_rights',
+    'check_access_rule', 'user_has_groups'
+}
+
+BLOCKED_WRITE_METHODS = {
+    'create', 'write', 'unlink', 'sudo', 'with_user', 'with_context',
+    'flush', 'invalidate_cache', 'execute', 'execute_kw'
+}
+
+
+# Simple Security Helper
+def is_read_only_method(method: str) -> bool:
+    """Check if method is read-only and safe"""
+    # Block dangerous write methods
+    if method in BLOCKED_WRITE_METHODS:
+        return False
+
+    # Block private methods
+    if method.startswith('_'):
+        return False
+
+    # Allow known read methods
+    if method in ALLOWED_READ_METHODS:
+        return True
+
+    # Default: block unknown methods for safety
+    return False
 
 
 @dataclass
@@ -40,8 +73,8 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
 
 # Create MCP server
 mcp = FastMCP(
-    "Odoo MCP Server",
-    description="MCP Server for interacting with Odoo ERP systems",
+    "Read-Only Odoo MCP Server",
+    description="Read-only MCP Server for Odoo ERP systems (blocks write operations)",
     dependencies=["requests"],
     lifespan=app_lifespan,
 )
@@ -211,7 +244,7 @@ class SearchHolidaysResponse(BaseModel):
 # ----- MCP Tools -----
 
 
-@mcp.tool(description="Execute a custom method on an Odoo model")
+@mcp.tool(description="Execute a read-only method on an Odoo model")
 def execute_method(
     ctx: Context,
     model: str,
@@ -220,11 +253,14 @@ def execute_method(
     kwargs: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
-    Execute a custom method on an Odoo model
+    Execute a read-only method on an Odoo model
+
+    This is a security-hardened version that only allows read operations.
+    Write operations (create, write, unlink) are blocked.
 
     Parameters:
         model: The model name (e.g., 'res.partner')
-        method: Method name to execute
+        method: Method name to execute (must be read-only)
         args: Positional arguments
         kwargs: Keyword arguments
 
@@ -234,114 +270,19 @@ def execute_method(
         - result: Result of the method (if success)
         - error: Error message (if failure)
     """
+    # Security check: only allow read-only methods
+    if not is_read_only_method(method):
+        return {
+            "success": False,
+            "error": f"Method '{method}' is not allowed. Only read-only operations are permitted."
+        }
+
     odoo = ctx.request_context.lifespan_context.odoo
     try:
         args = args or []
         kwargs = kwargs or {}
 
-        # Special handling for search methods like search, search_count, search_read
-        search_methods = ["search", "search_count", "search_read"]
-        if method in search_methods and args:
-            # Search methods usually have domain as the first parameter
-            # args: [[domain], limit, offset, ...] or [domain, limit, offset, ...]
-            normalized_args = list(
-                args
-            )  # Create a copy to avoid affecting the original args
-
-            if len(normalized_args) > 0:
-                # Process domain in args[0]
-                domain = normalized_args[0]
-                domain_list = []
-
-                # Check if domain is wrapped unnecessarily ([domain] instead of domain)
-                if (
-                    isinstance(domain, list)
-                    and len(domain) == 1
-                    and isinstance(domain[0], list)
-                ):
-                    # Case [[domain]] - unwrap to [domain]
-                    domain = domain[0]
-
-                # Normalize domain similar to search_records function
-                if domain is None:
-                    domain_list = []
-                elif isinstance(domain, dict):
-                    if "conditions" in domain:
-                        # Object format
-                        conditions = domain.get("conditions", [])
-                        domain_list = []
-                        for cond in conditions:
-                            if isinstance(cond, dict) and all(
-                                k in cond for k in ["field", "operator", "value"]
-                            ):
-                                domain_list.append(
-                                    [cond["field"], cond["operator"], cond["value"]]
-                                )
-                elif isinstance(domain, list):
-                    # List format
-                    if not domain:
-                        domain_list = []
-                    elif all(isinstance(item, list) for item in domain) or any(
-                        item in ["&", "|", "!"] for item in domain
-                    ):
-                        domain_list = domain
-                    elif len(domain) >= 3 and isinstance(domain[0], str):
-                        # Case [field, operator, value] (not [[field, operator, value]])
-                        domain_list = [domain]
-                elif isinstance(domain, str):
-                    # String format (JSON)
-                    try:
-                        parsed_domain = json.loads(domain)
-                        if (
-                            isinstance(parsed_domain, dict)
-                            and "conditions" in parsed_domain
-                        ):
-                            conditions = parsed_domain.get("conditions", [])
-                            domain_list = []
-                            for cond in conditions:
-                                if isinstance(cond, dict) and all(
-                                    k in cond for k in ["field", "operator", "value"]
-                                ):
-                                    domain_list.append(
-                                        [cond["field"], cond["operator"], cond["value"]]
-                                    )
-                        elif isinstance(parsed_domain, list):
-                            domain_list = parsed_domain
-                    except json.JSONDecodeError:
-                        try:
-                            import ast
-
-                            parsed_domain = ast.literal_eval(domain)
-                            if isinstance(parsed_domain, list):
-                                domain_list = parsed_domain
-                        except:
-                            domain_list = []
-
-                # Xác thực domain_list
-                if domain_list:
-                    valid_conditions = []
-                    for cond in domain_list:
-                        if isinstance(cond, str) and cond in ["&", "|", "!"]:
-                            valid_conditions.append(cond)
-                            continue
-
-                        if (
-                            isinstance(cond, list)
-                            and len(cond) == 3
-                            and isinstance(cond[0], str)
-                            and isinstance(cond[1], str)
-                        ):
-                            valid_conditions.append(cond)
-
-                    domain_list = valid_conditions
-
-                # Cập nhật args với domain đã chuẩn hóa
-                normalized_args[0] = domain_list
-                args = normalized_args
-
-                # Log for debugging
-                print(f"Executing {method} with normalized domain: {domain_list}")
-
+        # Execute the method (read-only methods only)
         result = odoo.execute_method(model, method, *args, **kwargs)
         return {"success": True, "result": result}
     except Exception as e:
@@ -442,3 +383,4 @@ def search_holidays(
 
     except Exception as e:
         return SearchHolidaysResponse(success=False, error=str(e))
+
