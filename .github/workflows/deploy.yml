@@ -66,10 +66,10 @@ jobs:
         EOF
 
         # Update the app
-        doctl apps update 2526a933-e82d-4c54-a003-68f7e0d4eb74 --spec app-spec.yaml
+        doctl apps update fda356d6-28b8-428d-a233-3f5f421a15a1 --spec app-spec.yaml
 
     - name: Wait for deployment
       run: |
         echo "Waiting for deployment to complete..."
         sleep 120
-        doctl apps get 2526a933-e82d-4c54-a003-68f7e0d4eb74
+        doctl apps get fda356d6-28b8-428d-a233-3f5f421a15a1
