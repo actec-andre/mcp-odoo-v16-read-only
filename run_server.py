@@ -78,10 +78,16 @@ def main() -> int:
             import uvicorn
             from fastapi import FastAPI
 
-            # Create FastAPI app and mount MCP SSE app
-            app = FastAPI()
+            # Create FastAPI app and mount both MCP apps
+            app = FastAPI(title="Odoo MCP Server")
+
+            # Mount SSE app for real-time communication
             sse_app = mcp.sse_app()
-            app.mount("/mcp", sse_app)
+            app.mount("/mcp/sse", sse_app)
+
+            # Mount HTTP app for n8n JSON-RPC compatibility
+            http_app = mcp.http_app()
+            app.mount("/mcp", http_app)
 
             # Run uvicorn server
             uvicorn.run(
