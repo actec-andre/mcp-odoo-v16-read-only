@@ -82,7 +82,7 @@ def main() -> int:
             app = FastAPI(title="Odoo MCP Server")
 
             # Mount SSE app for MCP communication
-            sse_app = mcp.sse_app
+            sse_app = mcp.sse_app()
             app.mount("/mcp", sse_app)
 
             # Run uvicorn server
