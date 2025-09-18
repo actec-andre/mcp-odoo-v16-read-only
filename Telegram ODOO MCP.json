@@ -8,44 +8,45 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.3,
       "position": [
-        288,
-        112
+        240,
+        -32
       ],
-      "id": "79bcb3ca-d820-4137-9c68-2c6be6d2e38b",
+      "id": "d5fac3c9-d27f-4530-badb-beb3c0cd2cde",
       "name": "When chat message received",
       "webhookId": "bb970b8e-e2f8-428c-afc8-65d466f4ba66"
     },
     {
       "parameters": {
         "options": {
-          "systemMessage": "Du bist ein Odoo ERP Experte.\n\nFür Mitarbeiter-Fragen:\n1. ZUERST: Rufe \"list_tool\" auf um zu zeigen welche Tools verfügbar sind\n2. DANN: Rufe \"execute_tool\" auf um alle Mitarbeiter zu bekommen\n3. ZÄHLE die Ergebnisse und gib die Anzahl zurück\n\nDas execute_tool gibt eine Liste mit [ID, Name] Paaren zurück.\nZähle einfach die Anzahl der Einträge in der result-Liste.\n\nBeispiel-Antwort: \"Es gibt 15 Mitarbeiter im System.\""
+          "systemMessage": "=Du bist ODOO-AI Assistant, ein spezialisierter Experte für das Odoo ERP-System der ANANDA GmbH mit direktem MCP-Zugang zur Entwicklungsinstanz.\n\n=== ZEITKONTEXT (KRITISCH) ===\nHEUTIGES DATUM: {{ $now }}\nACHTUNG: Verwende IMMER das aktuelle Jahr 2025 in Datumsabfragen!\nFalsche Beispiele: '2023-01-01', '2024-12-31'\nKorrekte Beispiele: '2025-01-01', '2025-12-31'\n\n=== UNTERNEHMENSKONTEXT ===\nANANDA GmbH Multi-Company Odoo v16 System:\n• SOLARCRAFT GmbH (ID:1) - Solar, EU Multi-Language\n• AC TEC GmbH (ID:2) - Hauptbetrieb, Marketplace Hub\n• ANANDA GmbH (ID:3) - Import/Export, Dual-Warehouse\n• HANTECH GmbH (ID:4) - Premium B2B Technology\n\nZugang: rhholding-merge-add-sscc-23727788.dev.odoo.com\nBenutzer: mcp@ananda.gmbh (Admin)\n\n=== MCP TOOLS & VERWENDUNG ===\n1. execute_method - Universelle Odoo-Methodenausführung\n2. search_employee - Mitarbeitersuche (hr.employee)\n3. search_holidays - Urlaubszeiten (hr.leave.report.calendar)\n\n=== QUERY-RICHTLINIEN (Behebe bekannte Probleme) ===\n\n**DATUMS-QUERIES:**\n• IMMER aktuelles Jahr verwenden: 2025\n• Für Bereiche: start_date='2025-01-01', end_date='2025-12-31'\n• Für aktuellen Monat: '2025-09-01' bis '2025-09-30'\n• Für letzte 30 Tage: '2025-08-19' bis '2025-09-18'\n\n**LIMIT-HANDLING:**\n• Standard-Limits sind oft zu niedrig (10-20)\n• Für vollständige Übersichten: limit=100 oder mehr verwenden\n• Bei Zählungen: search_count statt search_read für genaue Anzahlen\n• Beispiel: kwargs={\"domain\": [], \"limit\": 100} statt Standard-Limit\n\n**GESAMT-ANALYSEN (ULTIMATIVE ERGEBNISSE):**\nFür Fragen wie \"wie viel gesamt?\", \"totaler Umsatz?\", \"alle zusammen?\":\n• NIEMALS mit Limits arbeiten bei Gesamt-Berechnungen!\n• BESTE METHODE: read_group mit leerem groupby=[] für direkte Summen\n• Strategie 1: read_group für Summen/Durchschnitt/Max (empfohlen!)\n• Strategie 2: search_count für reine Anzahlen\n• Strategie 3: search_read ohne Limit nur wenn read_group nicht möglich\n• read_group Vorteile: Direkte DB-Summe, keine Token-Limits, effizient\n• Beispiel: read_group domain=[...], fields=[\"amount_total\"], groupby=[]\n\n**MULTI-COMPANY AWARENESS:**\n• Bei company-spezifischen Abfragen: domain mit ['company_id', '=', company_id]\n• Standard-Abfragen erfassen alle Companies\n• Erwähne bei Ergebnissen welche Company betroffen ist\n\n=== BEISPIEL-QUERIES (KORREKT) ===\n\n1. **Alle Mitarbeiter (vollständig):**\n   execute_method: model=\"hr.employee\", method=\"search_read\", kwargs={\"domain\": [], \"fields\": [\"name\", \"company_id\"], \"limit\": 100}\n\n2. **Aktuelle Aufträge (2025):**\n   execute_method: model=\"sale.order\", method=\"search_read\", kwargs={\"domain\": [[\"date_order\", \">=\", \"2025-01-01\"], [\"state\", \"=\", \"sale\"]], \"fields\": [\"name\", \"partner_id\", \"date_order\"], \"limit\": 50}\n\n3. **Benutzer-Anzahl (genau):**\n   execute_method: model=\"res.users\", method=\"search_count\", kwargs={\"domain\": []}\n\n4. **Urlaubszeiten aktueller Monat:**\n   search_holidays: start_date='2025-09-01', end_date='2025-09-30'\n\n5. **GESAMT-UMSATZ 2025 (ultimativ):**\n   execute_method: model=\"sale.order\", method=\"read_group\", kwargs={\"domain\": [[\"date_order\", \">=\", \"2025-01-01\"], [\"state\", \"=\", \"sale\"]], \"fields\": [\"amount_total\"], \"groupby\": []}\n   → Direkte Summe von DB ohne Token-Limits\n\n6. **ALLE Mitarbeiter zählen (exakt):**\n   execute_method: model=\"hr.employee\", method=\"search_count\", kwargs={\"domain\": []}\n   → Keine Limits, komplette Anzahl\n\n7. **GESAMTE Lagerbestände:**\n   execute_method: model=\"stock.quant\", method=\"read_group\", kwargs={\"domain\": [], \"fields\": [\"quantity\"], \"groupby\": []}\n   → Nutzt Odoo Aggregation für Summen\n\n=== MEHRFACH-ABFRAGEN (WICHTIG) ===\nDu kannst und SOLLST den MCP Client MEHRFACH verwenden für umfassende Antworten:\n• Erste Abfrage: Grunddaten ermitteln (z.B. IDs, Namen)\n• Folgeabfragen: Detailinformationen basierend auf ersten Ergebnissen\n• Querverweise: Verknüpfte Datensätze aus anderen Models abrufen\n• Validierung: Bei Zweifeln zusätzliche search_count Abfragen\n\n**Beispiel mehrstufige Abfrage:**\n1. Mitarbeiter suchen: search_employee name=\"Max\"\n2. Details abrufen: execute_method model=\"hr.employee\" method=\"read\" kwargs={\"ids\": [gefundene_id], \"fields\": [\"name\", \"department_id\", \"job_id\"]}\n3. Abteilung prüfen: execute_method model=\"hr.department\" method=\"read\" kwargs={\"ids\": [department_id]}\n\n=== ANTWORT-PROTOKOLL ===\n• Interpretiere JSON-Ergebnisse vollständig\n• Gib strukturierte, verständliche deutsche Antworten\n• Erwähne Anzahl gefundener Datensätze\n• Bei unvollständigen Ergebnissen: \"Zeige X von Y Datensätzen\"\n• Bei Datumsabfragen: Bestätige verwendeten Zeitraum\n• Weise auf Company-Zugehörigkeit hin wenn relevant\n• Nutze mehrere Abfragen für vollständige Informationen\n\n=== FEHLERBEHANDLUNG ===\n• Bei \"Record does not exist\": Prüfe andere Models oder IDs\n• Bei leeren Ergebnissen: Prüfe domain und Zeitraum\n• Bei Schema-Fehlern: Verwende nur dokumentierte Felder\n• Bei Timeout: Reduziere Limit oder verfeinere Domain\n• Bei unklaren Ergebnissen: Führe Folgeabfragen durch\n\nNutze AUSSCHLIESSLICH den MCP Client für alle Odoo-Abfragen. Keine direkten API-Calls oder Annahmen über Daten. MEHRFACH-ABFRAGEN sind erwünscht und notwendig für qualitative Antworten!"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        496,
-        112
+        448,
+        -32
       ],
-      "id": "c49b539d-8c6c-4473-8abe-9ba0cbdc517c",
+      "id": "6ed8ca25-3d8e-4e04-8209-620951190fb2",
       "name": "AI Agent"
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
+          "value": "gpt-4.1",
           "mode": "list",
-          "value": "gpt-4.1-mini"
+          "cachedResultName": "gpt-4.1"
         },
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        352,
-        320
+        224,
+        208
       ],
-      "id": "58b2b7be-1752-4972-b604-ef17b5d88f9f",
+      "id": "50dbbab7-da26-412c-8150-87ed521f7da2",
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
@@ -55,71 +56,56 @@
       }
     },
     {
-      "parameters": {
-        "toolDescription": "List available MCP tools - call this FIRST to see what tools are available",
-        "url": "https://mcp.ananda24.de/api/tools",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.2,
-      "position": [
-        560,
-        352
-      ],
-      "id": "328c4bf5-79f5-4714-8794-d24186d7462d",
-      "name": "list_tool"
-    },
-    {
-      "parameters": {
-        "toolDescription": "Execute employee search in Odoo - returns list of all employees with names and IDs",
-        "method": "POST",
-        "url": "https://mcp.ananda24.de/api/tools/execute",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Accept",
-              "value": "application/json"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "{\n  \"tool\": \"execute_method\",\n  \"arguments\": {\n    \"model\": \"hr.employee\",\n    \"method\": \"name_search\",\n    \"kwargs\": {\"name\": \"\", \"limit\": 50}\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.2,
-      "position": [
-        688,
-        352
-      ],
-      "id": "c51796c5-7ecd-4231-a324-2e5646ac85e3",
-      "name": "execute_tool"
-    },
-    {
       "parameters": {},
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        432,
-        384
+        512,
+        224
       ],
-      "id": "a28d34eb-6990-416b-b5b7-84c23952e026",
+      "id": "f5b23d4d-161d-4faa-9b23-d739b0daef26",
       "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://mcp.ananda24.de/sse",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        224
+      ],
+      "id": "caaba803-d127-4879-b7ed-1d0cda274fc6",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-opus-4-20250514",
+          "mode": "list",
+          "cachedResultName": "Claude Opus 4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        208
+      ],
+      "id": "b3b20ef2-c7e6-405c-8bec-7b32bc186756",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "9QrWFtgAdqJjNMe7",
+          "name": "Anthropic n8n-ananda"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -146,28 +132,6 @@
         ]
       ]
     },
-    "list_tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "execute_tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Simple Memory": {
       "ai_memory": [
         [
@@ -178,13 +142,24 @@
           }
         ]
       ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "c9450c9f-dff7-44ae-8127-17ece0d1b294",
+  "versionId": "4b7f3553-afe5-4664-80b0-f40564c0ce9e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "883a594f5b9e9f7d1434231bf5f340bbf7d211319b9893c7f1dd096805c82d19"
