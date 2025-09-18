@@ -4,6 +4,7 @@ A **security-hardened** MCP (Model Context Protocol) server for Odoo integration
 
 > **Based on:** [tuanle96/mcp-odoo](https://github.com/tuanle96/mcp-odoo) - Modified for read-only operations
 
+
 ## Features
 
 * **Comprehensive Odoo Integration**: Full access to Odoo models, records, and methods
