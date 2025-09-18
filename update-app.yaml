@@ -17,19 +17,5 @@ services:
   http_port: 8080
 
   envs:
-  # Odoo Connection - Staging Environment
-  - key: ODOO_URL
-    value: https://rhholding-merge-add-sscc-23727788.dev.odoo.com
-  - key: ODOO_DB
-    value: rhholding-merge-add-sscc-23727788
-  - key: ODOO_USERNAME
-    value: mcp@ananda.gmbh
-  - key: ODOO_PASSWORD
-    value: mcp88
-  # Odoo Client Configuration
-  - key: ODOO_TIMEOUT
-    value: "30"
-  - key: ODOO_VERIFY_SSL
-    value: "1"
-  - key: LOG_LEVEL
-    value: INFO
+  # Environment variables are set directly in DigitalOcean App Platform
+  # No credentials stored in repository for security

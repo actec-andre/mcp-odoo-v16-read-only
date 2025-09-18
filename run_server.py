@@ -68,12 +68,14 @@ def main() -> int:
         
         logger.info(f"MCP object type: {type(mcp)}")
         
+        # Import mcp at the top level to avoid UnboundLocalError
+        from odoo_mcp.server import mcp
+
         # Check if we should run in HTTP mode (for DigitalOcean) or stdio mode
         if os.environ.get("DEPLOYMENT_MODE") == "http":
             # HTTP mode for DigitalOcean App Platform
             logger.info("Starting Odoo MCP server with HTTP transport...")
             import uvicorn
-            from odoo_mcp.server import mcp
 
             # Run uvicorn server
             uvicorn.run(
