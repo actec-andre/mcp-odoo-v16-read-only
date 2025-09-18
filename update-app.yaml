@@ -1,6 +1,14 @@
 name: mcp-odoo-v16
 region: fra
 
+ingress:
+  rules:
+  - component:
+      name: odoo-mcp-server
+    match:
+      path:
+        prefix: /mcp
+
 services:
 - name: odoo-mcp-server
   source_dir: /
