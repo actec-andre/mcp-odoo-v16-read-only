@@ -25,18 +25,23 @@ jobs:
         name: mcp-odoo-v16
         region: fra
 
+        ingress:
+          rules:
+          - component:
+              name: odoo-mcp-server
+            match:
+              path:
+                prefix: /mcp
+
         services:
         - name: odoo-mcp-server
           source_dir: /
+          dockerfile_path: /Dockerfile
           github:
             repo: actec-andre/mcp-odoo-v16-read-only
             branch: main
             deploy_on_push: true
 
-          build_command: ""
-          dockerfile_path: Dockerfile
-
-          environment_slug: python
           instance_count: 1
           instance_size_slug: apps-s-1vcpu-0.5gb
           http_port: 8080
