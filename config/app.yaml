@@ -1,14 +1,14 @@
 # DigitalOcean App Platform Configuration
-# for RH Holding Read-Only Odoo MCP Server
+# for Read-Only Odoo MCP Server
 
-name: rh-holding-odoo-mcp-readonly
+name: odoo-mcp-readonly
 region: fra
 
 services:
 - name: odoo-mcp-server
   source_dir: /
   github:
-    repo: your-username/odoo-read-only-mcp
+    repo: actec-andre/mcp-odoo-v16-read-only
     branch: main
     deploy_on_push: true
 
@@ -18,30 +18,18 @@ services:
   instance_count: 1
   instance_size_slug: basic-xxs
 
-  health_check:
-    http_path: /health
-    initial_delay_seconds: 30
-    period_seconds: 10
-    timeout_seconds: 5
-    failure_threshold: 3
-    success_threshold: 2
-
   http_port: 8080
 
   envs:
-  # Odoo Connection
+  # Odoo Connection - Staging Environment
   - key: ODOO_URL
-    value: https://rhholding.odoo.com
-    type: SECRET
+    value: https://rhholding-merge-add-sscc-23727788.dev.odoo.com
   - key: ODOO_DB
-    value: rhholding-production-10209498
-    type: SECRET
+    value: rhholding-merge-add-sscc-23727788
   - key: ODOO_USERNAME
     value: mcp@ananda.gmbh
-    type: SECRET
   - key: ODOO_PASSWORD
-    scope: RUN_TIME
-    type: SECRET
+    value: mcp88
 
   # Odoo Client Configuration
   - key: ODOO_TIMEOUT
@@ -49,29 +37,7 @@ services:
   - key: ODOO_VERIFY_SSL
     value: "1"
 
-  # MCP Security
-  - key: MCP_API_KEY_N8N_PROD
-    scope: RUN_TIME
-    type: SECRET
-  - key: MCP_API_KEY_N8N_DEV
-    scope: RUN_TIME
-    type: SECRET
-  - key: MCP_API_KEY_ADMIN
-    scope: RUN_TIME
-    type: SECRET
-
-  # Rate Limiting
-  - key: MCP_RATE_LIMIT
-    value: "100"
-
-  # Company Access Control
-  - key: ALLOWED_COMPANIES
-    value: "1,2,3,4"
-
-  # Monitoring
-  - key: SENTRY_DSN
-    scope: RUN_TIME
-    type: SECRET
+  # Monitoring (optional)
   - key: LOG_LEVEL
     value: INFO
 

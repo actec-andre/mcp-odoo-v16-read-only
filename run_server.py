@@ -68,17 +68,32 @@ def main() -> int:
         
         logger.info(f"MCP object type: {type(mcp)}")
         
-        # Run server in stdio mode like the official examples
-        async def arun():
-            logger.info("Starting Odoo MCP server with stdio transport...")
-            async with stdio_server() as streams:
-                logger.info("Stdio server initialized, running MCP server...")
-                await mcp._mcp_server.run(
-                    streams[0], streams[1], mcp._mcp_server.create_initialization_options()
-                )
-                
-        # Run server
-        anyio.run(arun)
+        # Check if we should run in HTTP mode (for DigitalOcean) or stdio mode
+        if os.environ.get("DEPLOYMENT_MODE") == "http":
+            # HTTP mode for DigitalOcean App Platform
+            logger.info("Starting Odoo MCP server with HTTP transport...")
+            import uvicorn
+            from odoo_mcp.server import mcp
+
+            # Run uvicorn server
+            uvicorn.run(
+                mcp,
+                host="0.0.0.0",
+                port=int(os.environ.get("PORT", "8080")),
+                log_level="info"
+            )
+        else:
+            # Stdio mode for local development
+            async def arun():
+                logger.info("Starting Odoo MCP server with stdio transport...")
+                async with stdio_server() as streams:
+                    logger.info("Stdio server initialized, running MCP server...")
+                    await mcp._mcp_server.run(
+                        streams[0], streams[1], mcp._mcp_server.create_initialization_options()
+                    )
+
+            # Run server
+            anyio.run(arun)
         logger.info("MCP server stopped normally")
         return 0
         
