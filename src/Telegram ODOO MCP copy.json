@@ -1,0 +1,207 @@
+{
+  "name": "Telegram ODOO MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        112
+      ],
+      "id": "79bcb3ca-d820-4137-9c68-2c6be6d2e38b",
+      "name": "When chat message received",
+      "webhookId": "bb970b8e-e2f8-428c-afc8-65d466f4ba66"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Du bist ein Odoo ERP Experte.\n\nARBEITSABLAUF:\n1. Nutze ZUERST \"list_tool\" um verfügbare tools zu sehen\n2. NUR wenn der User nach Mitarbeiter-Daten fragt, nutze dann \"execute_tool\"\n\nDas execute_tool ist für Mitarbeiter-Abfragen konfiguriert und gibt alle Mitarbeiter zurück.\n\nBeantworte Fragen erst NACH dem Ausführen der Tools mit den echten Daten. Zähle die Anzahl der zurückgegebenen Mitarbeiter wenn nach der Anzahl gefragt wird."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        112
+      ],
+      "id": "c49b539d-8c6c-4473-8abe-9ba0cbdc517c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        320
+      ],
+      "id": "58b2b7be-1752-4972-b604-ef17b5d88f9f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "tIshVZFalTUik94g",
+          "name": "OpenAi ANDRE"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request and returns the response list_tool",
+        "url": "https://mcp.ananda24.de/api/tools",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        352
+      ],
+      "id": "328c4bf5-79f5-4714-8794-d24186d7462d",
+      "name": "list_tool"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request and returns the response execute_tool",
+        "method": "POST",
+        "url": "https://mcp.ananda24.de/api/tools/execute",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"tool\": \"execute_method\",\n  \"arguments\": {\n    \"model\": \"hr.employee\",\n    \"method\": \"name_search\",\n    \"kwargs\": {\"name\": \"\", \"limit\": 50}\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        688,
+        352
+      ],
+      "id": "c51796c5-7ecd-4231-a324-2e5646ac85e3",
+      "name": "execute_tool"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        384
+      ],
+      "id": "a28d34eb-6990-416b-b5b7-84c23952e026",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "list_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "execute_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c9450c9f-dff7-44ae-8127-17ece0d1b294",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "883a594f5b9e9f7d1434231bf5f340bbf7d211319b9893c7f1dd096805c82d19"
+  },
+  "id": "ZzCSl1PajNCxQWW5",
+  "tags": [
+    {
+      "createdAt": "2025-02-08T11:14:13.798Z",
+      "updatedAt": "2025-02-08T11:14:13.798Z",
+      "id": "6Srm1LJ29aMkqmpK",
+      "name": "Odoo"
+    },
+    {
+      "createdAt": "2025-03-26T10:06:35.364Z",
+      "updatedAt": "2025-03-26T10:06:35.364Z",
+      "id": "DKVNe5KF7cYc56yA",
+      "name": "Telegram"
+    }
+  ]
+}
