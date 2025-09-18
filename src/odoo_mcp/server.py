@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, AsyncIterator, Dict, List, Optional, Union, cast
 
-from mcp.server.fastmcp import Context, FastMCP
+from fastmcp import FastMCP, Context
 from pydantic import BaseModel, Field
 
 from .odoo_client import OdooClient, get_odoo_client
@@ -57,7 +57,7 @@ class AppContext:
 
 
 @asynccontextmanager
-async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
+async def lifespan() -> AsyncIterator[AppContext]:
     """
     Application lifespan for initialization and cleanup
     """
@@ -71,18 +71,17 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
         pass
 
 
-# Create MCP server
-mcp = FastMCP(
+# Create MCP server with modern FastMCP
+app = FastMCP(
     "Read-Only Odoo MCP Server",
-    dependencies=["requests"],
-    lifespan=app_lifespan,
+    lifespan=lifespan,
 )
 
 
 # ----- MCP Resources -----
 
 
-@mcp.resource(
+@app.resource(
     "odoo://models", description="List all available models in the Odoo system"
 )
 def get_models() -> str:
@@ -92,7 +91,7 @@ def get_models() -> str:
     return json.dumps(models, indent=2)
 
 
-@mcp.resource(
+@app.resource(
     "odoo://model/{model_name}",
     description="Get detailed information about a specific model including fields",
 )
@@ -117,7 +116,7 @@ def get_model_info(model_name: str) -> str:
         return json.dumps({"error": str(e)}, indent=2)
 
 
-@mcp.resource(
+@app.resource(
     "odoo://record/{model_name}/{record_id}",
     description="Get detailed information of a specific record by ID",
 )
@@ -142,7 +141,7 @@ def get_record(model_name: str, record_id: str) -> str:
         return json.dumps({"error": str(e)}, indent=2)
 
 
-@mcp.resource(
+@app.resource(
     "odoo://search/{model_name}/{domain}",
     description="Search for records matching the domain",
 )
@@ -243,7 +242,7 @@ class SearchHolidaysResponse(BaseModel):
 # ----- MCP Tools -----
 
 
-@mcp.tool(description="Execute a read-only method on an Odoo model")
+@app.tool(description="Execute a read-only method on an Odoo model")
 def execute_method(
     ctx: Context,
     model: str,
@@ -276,7 +275,7 @@ def execute_method(
             "error": f"Method '{method}' is not allowed. Only read-only operations are permitted."
         }
 
-    odoo = ctx.request_context.lifespan_context.odoo
+    odoo = ctx.session.odoo
     try:
         args = args or []
         kwargs = kwargs or {}
@@ -288,7 +287,7 @@ def execute_method(
         return {"success": False, "error": str(e)}
 
 
-@mcp.tool(description="Search for employees by name")
+@app.tool(description="Search for employees by name")
 def search_employee(
     ctx: Context,
     name: str,
@@ -304,7 +303,7 @@ def search_employee(
     Returns:
         SearchEmployeeResponse containing results or error information.
     """
-    odoo = ctx.request_context.lifespan_context.odoo
+    odoo = ctx.session.odoo
     model = "hr.employee"
     method = "name_search"
 
@@ -321,7 +320,7 @@ def search_employee(
         return SearchEmployeeResponse(success=False, error=str(e))
 
 
-@mcp.tool(description="Search for holidays within a date range")
+@app.tool(description="Search for holidays within a date range")
 def search_holidays(
     ctx: Context,
     start_date: str,
@@ -339,7 +338,7 @@ def search_holidays(
     Returns:
         SearchHolidaysResponse:  Object containing the search results.
     """
-    odoo = ctx.request_context.lifespan_context.odoo
+    odoo = ctx.session.odoo
 
     # Validate date format using datetime
     try:
