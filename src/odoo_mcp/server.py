@@ -74,7 +74,6 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
 # Create MCP server
 mcp = FastMCP(
     "Read-Only Odoo MCP Server",
-    description="Read-only MCP Server for Odoo ERP systems (blocks write operations)",
     dependencies=["requests"],
     lifespan=app_lifespan,
 )
