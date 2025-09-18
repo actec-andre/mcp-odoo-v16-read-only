@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, AsyncIterator, Dict, List, Optional, Union, cast
 
-from mcp.server.fastmcp import Context, FastMCP
+from fastmcp import FastMCP, Context
 from pydantic import BaseModel, Field
 
 from .odoo_client import OdooClient, get_odoo_client
