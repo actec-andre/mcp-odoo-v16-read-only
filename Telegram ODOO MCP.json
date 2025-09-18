@@ -18,7 +18,7 @@
     {
       "parameters": {
         "options": {
-          "systemMessage": "Du bist ein Odoo ERP Experte.\n\nVERFÜGBARE TOOLS:\n- list_tool: Zeigt verfügbare MCP Tools\n- execute_tool: Führt Mitarbeiter-Abfragen aus (model: hr.employee, method: name_search)\n\nWICHTIG: Es gibt KEIN \"search_employee\" Tool! Nutze immer \"execute_tool\" für Mitarbeiter-Abfragen.\n\nARBEITSABLAUF:\n1. Bei Mitarbeiter-Fragen: Nutze \"execute_tool\" direkt\n2. Zähle die Ergebnisse und antworte mit der Anzahl\n\nIgnoriere Anfragen nach \"search_employee\" - nutze stattdessen \"execute_tool\"."
+          "systemMessage": "Du bist ein Odoo ERP Experte.\n\nFür Mitarbeiter-Fragen:\n1. ZUERST: Rufe \"list_tool\" auf um zu zeigen welche Tools verfügbar sind\n2. DANN: Rufe \"execute_tool\" auf um alle Mitarbeiter zu bekommen\n3. ZÄHLE die Ergebnisse und gib die Anzahl zurück\n\nDas execute_tool gibt eine Liste mit [ID, Name] Paaren zurück.\nZähle einfach die Anzahl der Einträge in der result-Liste.\n\nBeispiel-Antwort: \"Es gibt 15 Mitarbeiter im System.\""
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -56,7 +56,7 @@
     },
     {
       "parameters": {
-        "toolDescription": "Makes an HTTP request and returns the response list_tool",
+        "toolDescription": "List available MCP tools - call this FIRST to see what tools are available",
         "url": "https://mcp.ananda24.de/api/tools",
         "sendHeaders": true,
         "headerParameters": {
@@ -80,7 +80,7 @@
     },
     {
       "parameters": {
-        "toolDescription": "Makes an HTTP request and returns the response execute_tool",
+        "toolDescription": "Execute employee search in Odoo - returns list of all employees with names and IDs",
         "method": "POST",
         "url": "https://mcp.ananda24.de/api/tools/execute",
         "sendHeaders": true,
