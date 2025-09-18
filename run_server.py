@@ -65,11 +65,11 @@ def main() -> int:
                     logger.info(f"  {key}: ***hidden***")
                 else:
                     logger.info(f"  {key}: {value}")
-        
-        logger.info(f"MCP object type: {type(mcp)}")
-        
+
         # Import mcp at the top level to avoid UnboundLocalError
         from odoo_mcp.server import mcp
+
+        logger.info(f"MCP object type: {type(mcp)}")
 
         # Check if we should run in HTTP mode (for DigitalOcean) or stdio mode
         if os.environ.get("DEPLOYMENT_MODE") == "http":
