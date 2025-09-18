@@ -1,9 +1,6 @@
-# Read-Only Odoo MCP Server
+# Odoo MCP Server
 
-A **security-hardened** MCP (Model Context Protocol) server for Odoo integration that **only allows read operations**. Write operations (create, write, unlink) are completely blocked for safety.
-
-> **Based on:** [tuanle96/mcp-odoo](https://github.com/tuanle96/mcp-odoo) - Modified for read-only operations
-
+An MCP server implementation that integrates with Odoo ERP systems, enabling AI assistants to interact with Odoo data and functionality through the Model Context Protocol.
 
 ## Features
 
