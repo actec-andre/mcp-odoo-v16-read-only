@@ -76,10 +76,16 @@ def main() -> int:
             # HTTP mode for DigitalOcean App Platform
             logger.info("Starting Odoo MCP server with HTTP transport...")
             import uvicorn
+            from fastapi import FastAPI
+
+            # Create FastAPI app and mount MCP SSE app
+            app = FastAPI()
+            sse_app = mcp.sse_app()
+            app.mount("/mcp", sse_app)
 
             # Run uvicorn server
             uvicorn.run(
-                mcp.http_app(),
+                app,
                 host="0.0.0.0",
                 port=int(os.environ.get("PORT", "8080")),
                 log_level="info"
