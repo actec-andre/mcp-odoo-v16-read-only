@@ -33,7 +33,8 @@ jobs:
             branch: main
             deploy_on_push: true
 
-          run_command: python run_server.py
+          build_command: ""
+          dockerfile_path: Dockerfile
 
           environment_slug: python
           instance_count: 1
