@@ -12,14 +12,12 @@ ingress:
 services:
 - name: odoo-mcp-server
   source_dir: /
-  git:
-    repo_clone_url: https://github.com/actec-andre/mcp-odoo-v16-read-only
+  dockerfile_path: /Dockerfile
+  github:
+    repo: actec-andre/mcp-odoo-v16-read-only
     branch: main
+    deploy_on_push: true
 
-  build_command: pip install -r requirements.txt
-  run_command: python -m uvicorn src.odoo_mcp.server:mcp --host 0.0.0.0 --port 8080
-
-  environment_slug: python
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
   http_port: 8080
