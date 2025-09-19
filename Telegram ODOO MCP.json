@@ -92,8 +92,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        32,
-        0
+        -416,
+        -48
       ],
       "id": "281b2267-6fdb-461e-92ae-8f3a4d8c111f",
       "name": "Telegram",
@@ -267,8 +267,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        32,
-        240
+        -416,
+        192
       ],
       "id": "ac5d14d7-afa9-4dd5-bbe3-d8890a57e8f7",
       "name": "Telegram Error",
@@ -292,6 +292,19 @@
       ],
       "id": "d191630a-fe13-43cb-8fe8-7516a5136524",
       "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Entferne Telegram-problematische Zeichen aus dem output\nfor (const item of $input.all()) {\n  if (item.json.output) {\n    // Entferne alle Markdown/HTML-Sonderzeichen die Telegram verwirren\n    let cleanText = item.json.output\n      .replace(/[\\*\\_\\[\\]\\(\\)\\~\\`]/g, '') // Markdown-Zeichen entfernen\n      .replace(/&/g, '&amp;')  // HTML-Entities escapen\n      .replace(/</g, '&lt;')   // < escapen\n      .replace(/>/g, '&gt;')   // > escapen\n      .replace(/\"/g, '\"')      // Anführungszeichen normalisieren\n      .replace(/'/g, \"'\");     // Apostrophe normalisieren\n    \n    // Ersetze den problematischen output\n    item.json.output = cleanText;\n  }\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        -32
+      ],
+      "id": "af15629f-879e-46b0-bbf8-9d3f2a40fb68",
+      "name": "sonderzeichen_entfernen"
     }
   ],
   "pinData": {},
@@ -333,7 +346,7 @@
       "main": [
         [
           {
-            "node": "Telegram",
+            "node": "sonderzeichen_entfernen",
             "type": "main",
             "index": 0
           }
@@ -408,13 +421,24 @@
           }
         ]
       ]
+    },
+    "sonderzeichen_entfernen": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "3682f1de-67d2-487e-b93f-7bfffa17ca1b",
+  "versionId": "46710028-e266-4c48-8efa-b1756b64bcfd",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "883a594f5b9e9f7d1434231bf5f340bbf7d211319b9893c7f1dd096805c82d19"
